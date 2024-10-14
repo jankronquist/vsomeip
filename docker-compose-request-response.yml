@@ -1,0 +1,73 @@
+services:
+
+# To start the request/response-example from the build-directory do:
+
+# HOST1: env VSOMEIP_CONFIGURATION=../../config/vsomeip-local.json VSOMEIP_APPLICATION_NAME=client-sample ./request-sample
+# HOST1: env VSOMEIP_CONFIGURATION=../../config/vsomeip-local.json VSOMEIP_APPLICATION_NAME=service-sample ./response-sample
+
+# To start the subscribe/notify-example from the build-directory do:
+
+# HOST1: env VSOMEIP_CONFIGURATION=../../config/vsomeip-local.json VSOMEIP_APPLICATION_NAME=client-sample ./subscribe-sample
+# HOST1: env VSOMEIP_CONFIGURATION=../../config/vsomeip-local.json VSOMEIP_APPLICATION_NAME=service-sample ./notify-sample
+
+# ////
+
+# HOST1:
+# VSOMEIP_CONFIGURATION=../helloworld-local.json \
+# VSOMEIP_APPLICATION_NAME=hello_world_service \
+# ./hello_world_service
+
+# HOST1:
+# VSOMEIP_CONFIGURATION=../helloworld-local.json \
+# VSOMEIP_APPLICATION_NAME=hello_world_client \
+# ./hello_world_client
+
+# THIS WORKS
+  # hello_world_service:
+  #   build:
+  #     dockerfile: vsomeip.dockerfile
+  #   working_dir: /vsomeip/examples/hello_world/build
+  #   command: ["sh", "-c", "ldconfig && ./hello_world_service"]
+  #   environment:
+  #   - VSOMEIP_CONFIGURATION=/work/examples/hello_world/helloworld-local.json
+  #   - VSOMEIP_APPLICATION_NAME=hello_world_service
+  #   tty: true
+  #   networks:
+  #     someip_network:
+  #       ipv4_address: 10.0.2.15
+
+  service-sample:
+    build:
+      dockerfile: vsomeip.dockerfile
+    working_dir: /vsomeip/build/examples
+    command: ["sh", "-c", "ldconfig && ./response-sample"]
+    environment:
+      - VSOMEIP_CONFIGURATION=/work/config/vsomeip-local.json
+      - VSOMEIP_APPLICATION_NAME=service-sample
+    networks:
+      someip_network:
+        ipv4_address: 10.0.2.15
+
+  client-sample:
+    build:
+      dockerfile: vsomeip.dockerfile
+    working_dir: /vsomeip/build/examples
+    command: ["sh", "-c", "ldconfig && ./request-sample"]
+    environment:
+      - VSOMEIP_CONFIGURATION=/work/config/vsomeip-local.json
+      - VSOMEIP_APPLICATION_NAME=client-sample
+    depends_on:
+      - service-sample
+    networks:
+      someip_network:
+        ipv4_address: 10.0.2.17
+
+networks:
+  someip_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_multicast: "true"      
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.0.0/16
